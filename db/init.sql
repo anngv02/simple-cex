@@ -56,5 +56,5 @@ VALUES ('userA@test.com', 'hash');
 
 INSERT INTO balances(user_id, asset_symbol, available)
 VALUES
-(1, 'USDT', 100000),
-(1, 'BTC', 0);
+(1, 'USDT', 500000), -- User 1 (Market Maker): 500k USDT
+(1, 'BTC', 50.0); -- User 1 (Market Maker): 50 BTC
