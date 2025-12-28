@@ -3,7 +3,9 @@ package engine
 import (
 	"context"
 	"errors"
+	"log"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -11,11 +13,13 @@ func CreateBuyOrder(db *pgxpool.Pool, userID int, symbol string, price, amount f
 	ctx := context.Background()
 	tx, err := db.Begin(ctx)
 	if err != nil {
+		log.Printf("CreateBuyOrder: Failed to begin transaction for user %d: %v", userID, err)
 		return 0, err
 	}
 	defer tx.Rollback(ctx)
 
 	cost := price * amount
+	log.Printf("CreateBuyOrder: User %d, BUY %f %s @ %f, cost: %f", userID, amount, symbol, price, cost)
 
 	// 1. Check balance
 	var available float64
@@ -25,10 +29,18 @@ func CreateBuyOrder(db *pgxpool.Pool, userID int, symbol string, price, amount f
 		userID).Scan(&available)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("CreateBuyOrder: User %d has no USDT balance", userID)
+			return 0, errors.New("user balance not found - user may not exist or have no USDT balance")
+		}
+		log.Printf("CreateBuyOrder: Error checking balance for user %d: %v", userID, err)
 		return 0, err
 	}
 
+	log.Printf("CreateBuyOrder: User %d has %f USDT available, need %f", userID, available, cost)
+
 	if available < cost {
+		log.Printf("CreateBuyOrder: User %d insufficient balance: %f < %f", userID, available, cost)
 		return 0, errors.New("insufficient balance")
 	}
 
@@ -67,6 +79,7 @@ func CreateSellOrder(db *pgxpool.Pool, userID int, symbol string, price, amount 
 	ctx := context.Background()
 	tx, err := db.Begin(ctx)
 	if err != nil {
+		log.Printf("CreateSellOrder: Failed to begin transaction for user %d: %v", userID, err)
 		return 0, err
 	}
 	defer tx.Rollback(ctx)
@@ -75,6 +88,7 @@ func CreateSellOrder(db *pgxpool.Pool, userID int, symbol string, price, amount 
 	// Không quan tâm giá (price) khi tính toán số dư cần khóa
 	cost := amount
 	assetToLock := "BTC" // Logic thực tế: Lấy substring trước dấu "_" của symbol
+	log.Printf("CreateSellOrder: User %d, SELL %f %s @ %f, need %f BTC", userID, amount, symbol, price, cost)
 
 	// 1. Check balance BTC
 	var available float64
@@ -84,10 +98,18 @@ func CreateSellOrder(db *pgxpool.Pool, userID int, symbol string, price, amount 
 		userID, assetToLock).Scan(&available)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("CreateSellOrder: User %d has no BTC balance", userID)
+			return 0, errors.New("user balance not found - user may not exist or have no BTC balance")
+		}
+		log.Printf("CreateSellOrder: Error checking balance for user %d: %v", userID, err)
 		return 0, err
 	}
 
+	log.Printf("CreateSellOrder: User %d has %f BTC available, need %f", userID, available, cost)
+
 	if available < cost {
+		log.Printf("CreateSellOrder: User %d insufficient balance: %f < %f", userID, available, cost)
 		return 0, errors.New("insufficient balance")
 	}
 
