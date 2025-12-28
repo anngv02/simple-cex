@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CEX WebSocket Test</title>
+</head>
+<body>
+    <h2>Live Orderbook: BTC_USDT</h2>
+    <div style="display: flex;">
+        <div style="margin-right: 50px;">
+            <h3>BIDS (Người Mua - Xanh)</h3>
+            <pre id="bids">Empty</pre>
+        </div>
+        <div>
+            <h3>ASKS (Người Bán - Đỏ)</h3>
+            <pre id="asks">Empty</pre>
+        </div>
+    </div>
+
+    <script>
+        // 1. Kết nối WebSocket
+        const socket = new WebSocket("ws://localhost:8010/ws");
+
+        socket.onopen = function() {
+            console.log("Connected to Server!");
+        };
+
+        socket.onmessage = function(event) {
+            // 2. Khi Server bắn data về
+            const data = JSON.parse(event.data);
+            console.log("Received:", data);
+
+            if (data.type === "ORDERBOOK_UPDATE") {
+                // Update giao diện
+                document.getElementById("bids").innerText = JSON.stringify(data.bids, null, 2);
+                document.getElementById("asks").innerText = JSON.stringify(data.asks, null, 2);
+            }
+        };
+
+        socket.onclose = function() {
+            console.log("Disconnected");
+        };
+    </script>
+</body>
+</html>
