@@ -20,16 +20,20 @@ const (
 	// Big traders: User 2-6 (5 users)
 	BIG_TRADER_START   = 2
 	BIG_TRADER_END     = 6
-	BIG_TRADE_MIN_USD  = 10000.0         // 10,000 USD
-	BIG_TRADE_MAX_USD  = 50000.0         // 50,000 USD
+	BIG_TRADE_MIN_USD  = 5000.0          // 5,000 USD (giảm min để random hơn)
+	BIG_TRADE_MAX_USD  = 100000.0        // 100,000 USD (tăng max để random hơn)
 	BIG_TRADE_INTERVAL = 1 * time.Minute // 1 phút 1 lần
 
 	// Small traders: User 7-10 (4 users)
 	SMALL_TRADER_START   = 7
 	SMALL_TRADER_END     = 10
-	SMALL_TRADE_MIN_USD  = 1000.0          // 1,000 USD
-	SMALL_TRADE_MAX_USD  = 10000.0         // 10,000 USD
+	SMALL_TRADE_MIN_USD  = 500.0           // 500 USD (giảm min để random hơn)
+	SMALL_TRADE_MAX_USD  = 20000.0         // 20,000 USD (tăng max để random hơn)
 	SMALL_TRADE_INTERVAL = 3 * time.Second // 3 giây 1 lần
+
+	// Market Maker
+	MARKET_MAKER_MIN_AMOUNT = 0.1 // 0.1 BTC
+	MARKET_MAKER_MAX_AMOUNT = 0.8 // 0.8 BTC
 )
 
 type OrderRequest struct {
@@ -69,19 +73,27 @@ func main() {
 // Để đảm bảo Orderbook luôn đẹp
 func runMarketMaker() {
 	for {
-		// Rải lệnh BÁN (Giá cao hơn 50k) - giảm số lệnh để tránh lock hết BTC
-		for i := 1; i <= 3; i++ {
+		// Rải lệnh BÁN (Giá cao hơn 50k) - số lượng lệnh random từ 2-4
+		numSellOrders := 2 + rand.Intn(3) // 2, 3, hoặc 4 lệnh
+		for i := 1; i <= numSellOrders; i++ {
 			price := BASE_PRICE + float64(i*50) + rand.Float64()*10 // Ví dụ: 50050, 50100...
-			placeOrder(1, "SELL", price, 0.3)                       // Giảm amount từ 0.5 xuống 0.3
+			// Random amount từ 0.1 đến 0.8 BTC
+			amount := MARKET_MAKER_MIN_AMOUNT + rand.Float64()*(MARKET_MAKER_MAX_AMOUNT-MARKET_MAKER_MIN_AMOUNT)
+			placeOrder(1, "SELL", price, amount)
 		}
 
-		// Rải lệnh MUA (Giá thấp hơn 50k) - giảm số lệnh để tránh lock hết USDT
-		for i := 1; i <= 3; i++ {
+		// Rải lệnh MUA (Giá thấp hơn 50k) - số lượng lệnh random từ 2-4
+		numBuyOrders := 2 + rand.Intn(3) // 2, 3, hoặc 4 lệnh
+		for i := 1; i <= numBuyOrders; i++ {
 			price := BASE_PRICE - float64(i*50) - rand.Float64()*10 // Ví dụ: 49950, 49900...
-			placeOrder(1, "BUY", price, 0.3)                        // Giảm amount từ 0.5 xuống 0.3
+			// Random amount từ 0.1 đến 0.8 BTC
+			amount := MARKET_MAKER_MIN_AMOUNT + rand.Float64()*(MARKET_MAKER_MAX_AMOUNT-MARKET_MAKER_MIN_AMOUNT)
+			placeOrder(1, "BUY", price, amount)
 		}
 
-		time.Sleep(2 * time.Second)
+		// Random sleep từ 1.5 đến 3 giây để tạo sự đa dạng
+		sleepDuration := 1500 + rand.Intn(1500) // 1.5s đến 3s
+		time.Sleep(time.Duration(sleepDuration) * time.Millisecond)
 	}
 }
 
@@ -102,8 +114,10 @@ func runBigTrader(userID int) {
 		fluctuation := (rand.Float64()*0.04 - 0.02) * BASE_PRICE
 		price := BASE_PRICE + fluctuation
 
-		// Tính amount dựa trên giá trị giao dịch (10k - 50k USD)
-		tradeValueUSD := BIG_TRADE_MIN_USD + rand.Float64()*(BIG_TRADE_MAX_USD-BIG_TRADE_MIN_USD)
+		// Tính amount dựa trên giá trị giao dịch (5k - 100k USD) - random hơn
+		// Sử dụng exponential distribution để có nhiều lệnh nhỏ hơn và ít lệnh lớn hơn (giống thực tế)
+		randomFactor := rand.Float64() * rand.Float64() // Tạo distribution lệch về phía nhỏ hơn
+		tradeValueUSD := BIG_TRADE_MIN_USD + randomFactor*(BIG_TRADE_MAX_USD-BIG_TRADE_MIN_USD)
 		amount := tradeValueUSD / price
 
 		// Gửi lệnh
@@ -131,8 +145,10 @@ func runSmallTrader(userID int) {
 		fluctuation := (rand.Float64()*0.02 - 0.01) * BASE_PRICE
 		price := BASE_PRICE + fluctuation
 
-		// Tính amount dựa trên giá trị giao dịch (1k - 10k USD)
-		tradeValueUSD := SMALL_TRADE_MIN_USD + rand.Float64()*(SMALL_TRADE_MAX_USD-SMALL_TRADE_MIN_USD)
+		// Tính amount dựa trên giá trị giao dịch (500 - 20k USD) - random hơn
+		// Sử dụng exponential distribution để có nhiều lệnh nhỏ hơn và ít lệnh lớn hơn (giống thực tế)
+		randomFactor := rand.Float64() * rand.Float64() // Tạo distribution lệch về phía nhỏ hơn
+		tradeValueUSD := SMALL_TRADE_MIN_USD + randomFactor*(SMALL_TRADE_MAX_USD-SMALL_TRADE_MIN_USD)
 		amount := tradeValueUSD / price
 
 		// Gửi lệnh
