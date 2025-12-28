@@ -6,7 +6,6 @@ import (
 	"simple-cex/engine" // Import package engine
 )
 
-
 func main() {
 	// 1. Kết nối DB
 	if err := InitDB(); err != nil {
@@ -17,9 +16,9 @@ func main() {
 
 	// 2. Khởi tạo Engine (Core Logic)
 	tradeEngine := engine.NewEngine(db)
-	
+
 	// 3. Khởi tạo API Server (Lớp giao tiếp)
-	server := api.NewServer(tradeEngine)
+	server := api.NewServer(tradeEngine, db)
 
 	// 4. Chạy Server tại port 8010
 	log.Println("Starting server on 0.0.0.0:8010")
