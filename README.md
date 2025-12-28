@@ -1,28 +1,28 @@
 # Simple CEX - Cryptocurrency Exchange Platform
 
-Một sàn giao dịch tiền điện tử đơn giản được xây dựng với Go (backend) và React (frontend), hỗ trợ giao dịch BTC/USDT với các tính năng cơ bản của một sàn giao dịch.
+A simple cryptocurrency exchange platform built with Go (backend) and React (frontend), supporting BTC/USDT trading with basic exchange features.
 
-## 📋 Tổng quan sản phẩm
+## 📋 Product Overview
 
-Simple CEX là một nền tảng giao dịch tiền điện tử mini với các tính năng chính:
+Simple CEX is a mini cryptocurrency trading platform with the following main features:
 
-- **Order Matching Engine**: Hệ thống khớp lệnh tự động với thuật toán price-time priority
-- **Orderbook**: Hiển thị sổ lệnh real-time với 10 giá tốt nhất mỗi bên (Bid/Ask)
-- **Candlestick Chart**: Biểu đồ nến với nhiều khung thời gian (1m, 5m, 15m, 1h) sử dụng TradingView Lightweight Charts
-- **Real-time Updates**: Cập nhật dữ liệu real-time qua WebSocket
-- **Market Simulation**: Tool giả lập giao dịch với nhiều loại traders (Market Maker, Big Traders, Small Traders)
-- **Balance Management**: Quản lý số dư với cơ chế lock/unlock khi đặt lệnh
+- **Order Matching Engine**: Automatic order matching system with price-time priority algorithm
+- **Orderbook**: Real-time order book display with top 10 best prices per side (Bid/Ask)
+- **Candlestick Chart**: Candlestick chart with multiple timeframes (1m, 5m, 15m, 1h) using TradingView Lightweight Charts
+- **Real-time Updates**: Real-time data updates via WebSocket
+- **Market Simulation**: Trading simulation tool with multiple trader types (Market Maker, Big Traders, Small Traders)
+- **Balance Management**: Balance management with lock/unlock mechanism when placing orders
 
-## 🛠️ Yêu cầu hệ thống
+## 🛠️ System Requirements
 
 - **Go**: >= 1.24
 - **Node.js**: >= 18.x
 - **PostgreSQL**: >= 12.x
-- **npm** hoặc **yarn**
+- **npm** or **yarn**
 
-## 📦 Cài đặt
+## 📦 Installation
 
-### 1. Cài đặt PostgreSQL
+### 1. Install PostgreSQL
 
 **Ubuntu/Debian:**
 ```bash
@@ -39,9 +39,9 @@ brew services start postgresql
 ```
 
 **Windows:**
-Tải và cài đặt từ [PostgreSQL Downloads](https://www.postgresql.org/download/windows/)
+Download and install from [PostgreSQL Downloads](https://www.postgresql.org/download/windows/)
 
-### 2. Cài đặt Go
+### 2. Install Go
 
 **Ubuntu/Debian:**
 ```bash
@@ -56,9 +56,9 @@ brew install go
 ```
 
 **Windows:**
-Tải và cài đặt từ [Go Downloads](https://go.dev/dl/)
+Download and install from [Go Downloads](https://go.dev/dl/)
 
-### 3. Cài đặt Node.js
+### 3. Install Node.js
 
 **Ubuntu/Debian:**
 ```bash
@@ -72,18 +72,18 @@ brew install node
 ```
 
 **Windows:**
-Tải và cài đặt từ [Node.js Downloads](https://nodejs.org/)
+Download and install from [Node.js Downloads](https://nodejs.org/)
 
-## 🚀 Cách chạy
+## 🚀 How to Run
 
-### Bước 1: Thiết lập Database
+### Step 1: Setup Database
 
-1. Tạo database và user:
+1. Create database and user:
 ```bash
 sudo -u postgres psql
 ```
 
-Trong PostgreSQL shell:
+In PostgreSQL shell:
 ```sql
 CREATE DATABASE cexdb;
 CREATE USER cex WITH PASSWORD 'cexpass';
@@ -91,64 +91,90 @@ GRANT ALL PRIVILEGES ON DATABASE cexdb TO cex;
 \q
 ```
 
-2. Khởi tạo schema và seed data:
+2. Initialize schema and seed data:
 ```bash
 psql -U cex -d cexdb -f db/init.sql
 psql -U cex -d cexdb -f db/seed_simulation.sql
 ```
 
-**Lưu ý**: Nếu database đã tồn tại và cần cập nhật balance, chạy:
+**Note**: If the database already exists and you need to update balances, run:
 ```bash
 psql -U cex -d cexdb -f db/fix_user1.sql
 ```
 
-### Bước 2: Cài đặt dependencies Backend
+### Step 2: Install Backend Dependencies
 
 ```bash
 cd /home/annez02/simple-cex
 go mod download
 ```
 
-### Bước 3: Chạy Backend Server
+### Step 3: Run Backend Server
 
 ```bash
 cd backend
 go run main.go db.go
 ```
 
-Backend sẽ chạy tại `http://localhost:8010`
+Backend will run at `http://localhost:8010`
 
 **API Endpoints:**
-- `POST /order` - Đặt lệnh mua/bán
-- `GET /orderbook/:symbol` - Lấy orderbook
-- `GET /trades/:symbol?interval=1m&limit=100` - Lấy dữ liệu OHLCV cho chart
+- `POST /order` - Place buy/sell order
+- `GET /orderbook/:symbol` - Get orderbook
+- `GET /trades/:symbol?interval=1m&limit=100` - Get OHLCV data for chart
 - `GET /ws` - WebSocket connection
 
-### Bước 4: Cài đặt và chạy Frontend
+### Step 4: Install and Run Frontend
 
-Mở terminal mới:
+Open a new terminal:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Frontend sẽ chạy tại `http://localhost:5173` (hoặc port khác nếu 5173 đã được sử dụng)
+Frontend will run at `http://localhost:5173` (or another port if 5173 is already in use)
 
-### Bước 5: (Tùy chọn) Chạy Market Simulation
+### Step 5: (Optional) Run Market Simulation
 
-Mở terminal mới để chạy simulation tạo giao dịch giả lập:
+Open a new terminal to run simulation that generates mock trades:
 ```bash
 cd simulation
 go run main.go
 ```
 
-Simulation sẽ tạo:
-- **Market Maker** (User 1): Rải lệnh mỗi 2 giây để duy trì orderbook
-- **Big Traders** (User 2-6): Giao dịch 10k-50k USD, mỗi 1 phút
-- **Small Traders** (User 7-10): Giao dịch 1k-10k USD, mỗi 3 giây
+Simulation will create:
+- **Market Maker** (User 1): Places orders every 1.5-3 seconds to maintain orderbook
+- **Big Traders** (User 2-6): Trade 5k-100k USD, every 1 minute
+- **Small Traders** (User 7-10): Trade 500-20k USD, every 3 seconds
 
-## 📁 Cấu trúc thư mục
+## 🐳 Docker Setup
+
+### Using Docker Compose
+
+1. Build and run all services:
+```bash
+docker compose build
+docker compose up -d
+```
+
+2. View logs:
+```bash
+docker compose logs -f
+```
+
+3. Stop services:
+```bash
+docker compose down
+```
+
+### Access Points
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8010
+- **PostgreSQL**: localhost:5432
+
+## 📁 Directory Structure
 
 ```
 simple-cex/
@@ -172,45 +198,45 @@ simple-cex/
 └── simulation/       # Market simulation tool
 ```
 
-## 📊 Tính năng chính
+## 📊 Main Features
 
 ### Order Matching
-- Thuật toán khớp lệnh price-time priority
-- Hỗ trợ limit orders (BUY/SELL)
-- Tự động settlement sau khi khớp
+- Price-time priority matching algorithm
+- Support for limit orders (BUY/SELL)
+- Automatic settlement after matching
 
 ### Real-time Updates
-- WebSocket cho orderbook updates
-- WebSocket cho trade updates
-- Chart tự động cập nhật mỗi 1 giây
+- WebSocket for orderbook updates
+- WebSocket for trade updates
+- Chart automatically updates every 1 second
 
 ### Chart Features
-- Candlestick chart với TradingView Lightweight Charts
-- Hỗ trợ nhiều timeframe: 1m, 5m, 15m, 1h
-- Tính toán OHLCV từ dữ liệu trades
+- Candlestick chart with TradingView Lightweight Charts
+- Support for multiple timeframes: 1m, 5m, 15m, 1h
+- OHLCV calculation from trade data
 
 ## 🧪 Testing
 
-Để test API bằng curl:
+To test API with curl:
 ```bash
-# Đặt lệnh mua
+# Place buy order
 curl -X POST http://localhost:8010/order \
   -H "Content-Type: application/json" \
   -d '{"user_id": 1, "symbol": "BTC_USDT", "side": "BUY", "price": 50000, "amount": 0.1}'
 
-# Lấy orderbook
+# Get orderbook
 curl http://localhost:8010/orderbook/BTC_USDT
 
-# Lấy dữ liệu chart
+# Get chart data
 curl http://localhost:8010/trades/BTC_USDT?interval=1m&limit=100
 ```
 
-## 📝 Lưu ý
+## 📝 Notes
 
-- Đây là một project demo/educational, không nên sử dụng trong production
-- Cần thêm authentication/authorization cho production
-- Cần thêm rate limiting và security measures
-- Database connection string nên được config qua environment variables
+- This is a demo/educational project, should not be used in production
+- Authentication/authorization needed for production
+- Rate limiting and security measures needed
+- Database connection string should be configured via environment variables
 
 ## 📄 License
 
