@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import axios from 'axios';
+import { API_URL, WS_URL } from '../config';
 
 interface OHLCV {
   time: number; // Unix timestamp
@@ -19,34 +20,6 @@ interface CandlestickData {
   low: number;
   close: number;
 }
-
-// Hàm tạo mock data nếu API chưa sẵn sàng
-const generateMockData = (): CandlestickData[] => {
-  const data: CandlestickData[] = [];
-  const now = Math.floor(Date.now() / 1000);
-  let price = 45000;
-
-  for (let i = 100; i >= 0; i--) {
-    const time = now - i * 60; // Mỗi nến cách nhau 1 phút
-    const change = (Math.random() - 0.5) * 1000; // Biến động ngẫu nhiên
-    const open = price;
-    const close = open + change;
-    const high = Math.max(open, close) + Math.random() * 200;
-    const low = Math.min(open, close) - Math.random() * 200;
-
-    data.push({
-      time,
-      open,
-      high,
-      low,
-      close,
-    });
-
-    price = close;
-  }
-
-  return data;
-};
 
 // Hàm cập nhật chart khi có trade mới
 const updateChartWithTrade = (
@@ -190,7 +163,7 @@ export default function CandlestickChart() {
           // Fetch dữ liệu từ API với interval hiện tại
           const fetchData = async (currentInterval: string = interval) => {
             try {
-              const response = await axios.get(`http://localhost:8010/trades/BTC_USDT?interval=${currentInterval}&limit=100`);
+              const response = await axios.get(`${API_URL}/trades/BTC_USDT?interval=${currentInterval}&limit=100`);
               const trades: OHLCV[] = response.data;
 
               if (trades && trades.length > 0) {
@@ -206,18 +179,15 @@ export default function CandlestickChart() {
                 candlestickSeries.setData(chartData);
                 chart.timeScale().fitContent();
               } else {
-                // Nếu không có dữ liệu, dùng mock data
-                const mockData = generateMockData();
-                candlestickSeries.setData(mockData);
-                chart.timeScale().fitContent();
+                // Nếu không có dữ liệu, hiển thị chart trống
+                candlestickSeries.setData([]);
+                console.log('No trades data available. Waiting for simulation to start...');
               }
               setIsLoading(false);
             } catch (error) {
               console.error('Error fetching chart data:', error);
-              // Nếu API chưa có hoặc lỗi, dùng mock data
-              const mockData = generateMockData();
-              candlestickSeries.setData(mockData);
-              chart.timeScale().fitContent();
+              // Nếu API lỗi, hiển thị chart trống
+              candlestickSeries.setData([]);
               setIsLoading(false);
             }
           };
@@ -231,7 +201,7 @@ export default function CandlestickChart() {
           }, 1000); // 1000ms = 1 giây
 
           // 5. Kết nối WebSocket để nhận trade updates real-time
-          const ws = new WebSocket("ws://localhost:8010/ws");
+          const ws = new WebSocket(`${WS_URL}/ws`);
           wsRef.current = ws;
 
           ws.onopen = () => {

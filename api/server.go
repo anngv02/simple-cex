@@ -47,6 +47,20 @@ func (s *Server) setupRoutes() {
 		c.Next()
 	})
 
+	// Root endpoint - API information
+	s.router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Simple CEX API",
+			"version": "1.0.0",
+			"endpoints": gin.H{
+				"POST /order":            "Đặt lệnh mua/bán",
+				"GET /orderbook/:symbol": "Lấy orderbook",
+				"GET /trades/:symbol":    "Lấy dữ liệu OHLCV cho chart",
+				"GET /ws":                "WebSocket connection",
+			},
+		})
+	})
+
 	// API Đặt lệnh
 	s.router.POST("/order", s.handlePlaceOrder)
 

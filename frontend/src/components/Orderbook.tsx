@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { WS_URL } from '../config';
 
 // Định nghĩa kiểu dữ liệu cho Lệnh
 interface Order {
@@ -17,7 +18,7 @@ export default function OrderBook() {
 
   useEffect(() => {
     // 1. Kết nối WebSocket tới Backend
-    const ws = new WebSocket("ws://localhost:8010/ws");
+    const ws = new WebSocket(`${WS_URL}/ws`);
     let isConnected = false;
 
     ws.onopen = () => {

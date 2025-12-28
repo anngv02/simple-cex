@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 export default function OrderForm() {
   const [side, setSide] = useState<'BUY' | 'SELL'>('BUY');
@@ -10,7 +11,7 @@ export default function OrderForm() {
   const handleSubmit = async () => {
     try {
       // Gọi API Backend
-      await axios.post('http://localhost:8010/order', {
+      await axios.post(`${API_URL}/order`, {
         user_id: parseInt(userID),
         symbol: "BTC_USDT",
         side: side,
