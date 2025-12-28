@@ -87,7 +87,7 @@ func CreateSellOrder(db *pgxpool.Pool, userID int, symbol string, price, amount 
 	// Với lệnh SELL (Bán BTC), ta chỉ cần khóa số lượng BTC (amount)
 	// Không quan tâm giá (price) khi tính toán số dư cần khóa
 	cost := amount
-	assetToLock := "BTC" // Logic thực tế: Lấy substring trước dấu "_" của symbol
+	assetToLock := "BTC"
 	log.Printf("CreateSellOrder: User %d, SELL %f %s @ %f, need %f BTC", userID, amount, symbol, price, cost)
 
 	// 1. Check balance BTC
@@ -165,20 +165,19 @@ func CancelOrder(db *pgxpool.Pool, orderID int, userID int) error {
 		Scan(&status, &side, &symbol, &price, &amount, &filled)
 
 	if err != nil {
-		return err // Không tìm thấy order hoặc lỗi
+		return err 
 	}
 
 	if status != "OPEN" && status != "PARTIAL" {
 		return errors.New("order cannot be cancelled")
 	}
 
-	// Logic tính toán trả tiền
 	var assetToRefund string
 	var amountToRefund float64
 
 	// Giả sử symbol là "BTC_USDT" -> Cần tách chuỗi để lấy Base (BTC) và Quote (USDT)
 	// Để đơn giản cho demo, ta hardcode logic cắt chuỗi hoặc quy ước
-	// Ở đây tôi giả định symbol format chuẩn là "BASE_QUOTE"
+	// Ở đây giả định symbol format chuẩn là "BASE_QUOTE"
 
 	if side == "BUY" {
 		// Mua BTC bằng USDT -> Trả lại USDT
